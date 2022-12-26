@@ -11,6 +11,7 @@
 		DE8727302959850500E5F6AD /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DE87272B2959850500E5F6AD /* Preview Assets.xcassets */; };
 		DE8727312959850500E5F6AD /* WebP_ExpressApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE87272C2959850500E5F6AD /* WebP_ExpressApp.swift */; };
 		DE8727322959850500E5F6AD /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE87272D2959850500E5F6AD /* ContentView.swift */; };
+		DE8727352959988000E5F6AD /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = DE8727342959988000E5F6AD /* README.md */; };
 		DE87B3652959456A00FFDBD7 /* WebP in Frameworks */ = {isa = PBXBuildFile; productRef = DE87B3642959456A00FFDBD7 /* WebP */; };
 /* End PBXBuildFile section */
 
@@ -34,6 +35,7 @@
 		DE87272C2959850500E5F6AD /* WebP_ExpressApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebP_ExpressApp.swift; sourceTree = "<group>"; };
 		DE87272D2959850500E5F6AD /* ContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		DE872733295985AE00E5F6AD /* WebP_Express.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WebP_Express.entitlements; sourceTree = "<group>"; };
+		DE8727342959988000E5F6AD /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,6 +53,7 @@
 		DE7BAC4A295927D10077FF41 = {
 			isa = PBXGroup;
 			children = (
+				DE8727342959988000E5F6AD /* README.md */,
 				DE8727282959850500E5F6AD /* WebP Express */,
 				DE7BAC54295927D10077FF41 /* Products */,
 				DE7BB10F295938630077FF41 /* Frameworks */,
@@ -157,6 +160,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DE8727352959988000E5F6AD /* README.md in Resources */,
 				DE8727302959850500E5F6AD /* Preview Assets.xcassets in Resources */,
 				DE87272F2959850500E5F6AD /* Assets.xcassets in Resources */,
 			);
