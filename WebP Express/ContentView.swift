@@ -17,8 +17,8 @@ struct ContentView: View {
     @State private var conversionStarted: Bool = false
     @State private var conversionFinished: Bool = false
     @State private var canAddFile: Bool = true
-    @State private var conversionQuality: Float = 80
-    @State private var conversionCategory: WebPEncoderConfig.Preset = .default
+    @AppStorage("ConversionQuality") private var conversionQuality: Double = 80
+    @AppStorage("ConversionCategory") private var conversionCategory: WebPEncoderConfig.Preset = .default
 
     var body: some View {
         VStack(spacing: 10) {
@@ -78,7 +78,7 @@ struct ContentView: View {
                 }
                     .width(20)
             }
-            GroupBox("Options") {
+            GroupBox {
                 HStack {
                     HStack {
                         Slider(value: $conversionQuality, in: 50.0...100.0, step: 5) {
@@ -101,6 +101,8 @@ struct ContentView: View {
                     }
                 }
                 .padding(5)
+            } label: {
+                Label("Options", systemImage: "gearshape")
             }
         }
         .padding()
@@ -150,6 +152,44 @@ extension URL: Identifiable {
 
 extension URL {
     public var directory: String { deletingLastPathComponent().path(percentEncoded: false) }
+}
+
+extension WebPEncoderConfig.Preset: RawRepresentable {
+    public init?(rawValue: String) {
+        switch rawValue {
+            case "default":
+                self = .default
+            case "picture":
+                self = .picture
+            case "photo":
+                self = .photo
+            case "drawing":
+                self = .drawing
+            case "icon":
+                self = .icon
+            case "text":
+                self = .text
+            default:
+                return nil
+        }
+    }
+
+    public var rawValue: String {
+        switch self {
+            case .default:
+                return "default"
+            case .picture:
+                return "picture"
+            case .photo:
+                return "photo"
+            case .drawing:
+                return "drawing"
+            case .icon:
+                return "icon"
+            case .text:
+                return "text"
+        }
+    }
 }
 
 struct ContentView_Previews: PreviewProvider {
