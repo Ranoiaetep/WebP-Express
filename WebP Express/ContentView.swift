@@ -23,20 +23,7 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 10) {
             HStack {
-                Button {
-                    conversionFinished = false
-                    fileURLS.removeAll { url in
-                        fileFinished[url] ?? false
-                    }
-                    fileFinished.removeAll()
-                    let panel = NSOpenPanel()
-                    panel.allowsMultipleSelection = true
-                    panel.allowedContentTypes = [.image]
-                    if panel.runModal() == .OK {
-                        fileURLS.append(contentsOf: panel.urls)
-                    }
-                    conversionStarted = false
-                } label: {
+                Button(action: addFileAction) {
                     Label("Add Files", systemImage: "plus.circle")
                         .padding()
                 }
@@ -50,21 +37,10 @@ struct ContentView: View {
                         .font(.title2)
                 }
 
-                Button(action: {
-                    canAddFile = false
-                    conversionStarted = true
-                    for url in fileURLS {
-                        let image = try! NSImage(data: Data(contentsOf: url))
-                        queue.addOperation {
-                            let data = try! webPEncoder.encode(image!, config: .preset(conversionCategory, quality: conversionQuality))
-                            try! data.write(to: url.deletingPathExtension().appendingPathExtension("webp"))
-                            fileFinished[url] = true
-                        }
-                    }
-                }, label: {
+                Button(action: startConversionAction) {
                     Label("Start", systemImage: "play")
                         .padding()
-                })
+                }
                 .disabled(fileURLS.count == 0)
             }
             .frame(height: 40)
@@ -75,9 +51,18 @@ struct ContentView: View {
                 }
             }
             Table(fileURLS) {
-                TableColumn("Path", value: \.directory)
                 TableColumn("Filename", value: \.lastPathComponent)
-                TableColumn("Progress") { url in
+                    .width(min: 200, ideal: 300)
+                TableColumn("Path", value: \.directory)
+                    .width(min: 200)
+                TableColumn("Saving") { url in
+                    if fileFinished[url] ?? false {
+                        Text(calcFileSaving(url))
+                    }
+                    else { EmptyView() }
+                }
+                    .width(40)
+                TableColumn("") { url in
                     if !conversionStarted {
                         EmptyView()
                     }
@@ -91,6 +76,7 @@ struct ContentView: View {
                             .frame(height: 10)
                     }
                 }
+                    .width(20)
             }
             GroupBox("Options") {
                 HStack {
@@ -118,6 +104,43 @@ struct ContentView: View {
             }
         }
         .padding()
+    }
+
+    private func addFileAction() {
+        conversionFinished = false
+        fileURLS.removeAll { url in
+            fileFinished[url] ?? false
+        }
+        fileFinished.removeAll()
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = true
+        panel.allowedContentTypes = [.image]
+        if panel.runModal() == .OK {
+            fileURLS.append(contentsOf: panel.urls)
+        }
+        conversionStarted = false
+    }
+
+    private func startConversionAction() {
+        canAddFile = false
+        conversionStarted = true
+        for url in fileURLS {
+            let image = try! NSImage(data: Data(contentsOf: url))
+            queue.addOperation {
+                let data = try! webPEncoder.encode(image!, config: .preset(conversionCategory, quality: Float(conversionQuality)))
+                try! data.write(to: url.deletingPathExtension().appendingPathExtension("webp"))
+                fileFinished[url] = true
+            }
+        }
+    }
+
+    private func calcFileSaving(_ url: URL) -> String {
+        let attribute1 = try! FileManager.default.attributesOfItem(atPath: url.path(percentEncoded: false))
+        let attribute2 = try! FileManager.default.attributesOfItem(atPath: url.deletingPathExtension().appendingPathExtension("webp").path(percentEncoded: false))
+        let size1 = attribute1[.size]! as! NSNumber
+        let size2 = attribute2[.size]! as! NSNumber
+        let rate = (size1.doubleValue - size2.doubleValue) / size1.doubleValue
+        return rate.formatted(.percent.precision(.fractionLength(0)))
     }
 }
 
