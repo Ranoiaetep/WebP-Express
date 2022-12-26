@@ -19,6 +19,7 @@ struct ContentView: View {
     @State private var canAddFile: Bool = true
     @AppStorage("ConversionQuality") private var conversionQuality: Double = 80
     @AppStorage("ConversionCategory") private var conversionCategory: WebPEncoderConfig.Preset = .default
+    @State private var selectedFile: Set<URL.ID> = []
 
     var body: some View {
         VStack(spacing: 10) {
@@ -50,7 +51,7 @@ struct ContentView: View {
                     conversionFinished = true
                 }
             }
-            Table(fileURLS) {
+            Table(fileURLS, selection: $selectedFile) {
                 TableColumn("Filename", value: \.lastPathComponent)
                     .width(min: 200, ideal: 300)
                 TableColumn("Path", value: \.directory)
@@ -77,6 +78,12 @@ struct ContentView: View {
                     }
                 }
                     .width(20)
+            }
+            .onDeleteCommand {
+                fileURLS.removeAll { url in
+                    selectedFile.contains(url.id)
+                }
+                selectedFile.removeAll()
             }
             GroupBox {
                 HStack {
