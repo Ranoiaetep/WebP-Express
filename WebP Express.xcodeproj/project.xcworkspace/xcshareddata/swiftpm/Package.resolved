@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "swift-webp",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ainame/Swift-WebP",
+      "state" : {
+        "branch" : "master",
+        "revision" : "545f908e01d14973bfb6d4231521cdde407af748"
+      }
+    }
+  ],
+  "version" : 2
+}
