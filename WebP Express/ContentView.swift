@@ -24,7 +24,7 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 10) {
             HStack {
-                Button(action: addFileAction) {
+                Button(action: addFileViaPanel) {
                     Label("Add Files", systemImage: "plus.circle")
                         .padding()
                 }
@@ -85,6 +85,8 @@ struct ContentView: View {
                 }
                 selectedFile.removeAll()
             }
+            .dropDestination(for: URL.self, action: addFileViaDrop(urls:_:))
+
             GroupBox {
                 HStack {
                     HStack {
@@ -115,18 +117,30 @@ struct ContentView: View {
         .padding()
     }
 
-    private func addFileAction() {
+    private func addFileViaPanel() {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = true
+        panel.allowedContentTypes = [.image]
+        if panel.runModal() == .OK {
+            addFileAction(urls: panel.urls)
+        }
+    }
+
+    private func addFileViaDrop(urls: [URL], _: CGPoint) -> Bool {
+        let urls = Array(Set(urls)).filter { url in
+            return (try? url.resourceValues(forKeys: [.contentTypeKey]).contentType?.conforms(to: .image)) ?? false
+        }.sorted()
+        addFileAction(urls: urls)
+        return true
+    }
+
+    private func addFileAction(urls: [URL]) {
         conversionFinished = false
         fileURLS.removeAll { url in
             fileFinished[url] ?? false
         }
         fileFinished.removeAll()
-        let panel = NSOpenPanel()
-        panel.allowsMultipleSelection = true
-        panel.allowedContentTypes = [.image]
-        if panel.runModal() == .OK {
-            fileURLS.append(contentsOf: panel.urls)
-        }
+        fileURLS.append(contentsOf: urls)
         conversionStarted = false
     }
 
@@ -159,6 +173,12 @@ extension URL: Identifiable {
 
 extension URL {
     public var directory: String { deletingLastPathComponent().path(percentEncoded: false) }
+}
+
+extension URL: Comparable {
+    public static func < (lhs: URL, rhs: URL) -> Bool {
+        return lhs.absoluteString < rhs.absoluteString
+    }
 }
 
 extension WebPEncoderConfig.Preset: RawRepresentable {
