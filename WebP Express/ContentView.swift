@@ -31,9 +31,6 @@ struct ContentView: View {
     private let webPEncoder = WebPEncoder()
     @State private var queue: OperationQueue = .init()
     @State private var files: [FileModel] = []
-    @State private var conversionStarted: Bool = false
-    @State private var conversionFinished: Bool = false
-    @State private var canAddFile: Bool = true
     @AppStorage("ConversionQuality") private var conversionQuality: Double = 80
     @AppStorage("ConversionCategory") private var conversionCategory: WebPEncoderConfig.Preset = .default
     @State private var selectedFile: Set<FileModel.ID> = []
@@ -45,29 +42,19 @@ struct ContentView: View {
                     Label("Add Files", systemImage: "plus.circle")
                         .padding()
                 }
-                .disabled(!canAddFile)
+                .disabled(!queue.operations.isEmpty)
 
                 Spacer()
-
-                if conversionFinished {
-                    Image(systemName: "checkmark.circle")
-                        .foregroundColor(.green)
-                        .font(.title2)
-                }
 
                 Button(action: startConversionAction) {
                     Label("Start", systemImage: "play")
                         .padding()
                 }
-                .disabled(files.isEmpty)
+                .disabled(!queue.operations.isEmpty ||
+                          files.map(\.state).filter{ $0 != .success }.isEmpty
+                )
             }
             .frame(height: 40)
-            .onChange(of: files.map(\.state)) { newValue in
-                if Set(newValue) == Set([.success, .fail]) {
-                    canAddFile = true
-                    conversionFinished = true
-                }
-            }
             Table(files, selection: $selectedFile) {
                 TableColumn("Filename", value: \.url.lastPathComponent)
                     .width(min: 200, ideal: 300)
@@ -151,8 +138,9 @@ struct ContentView: View {
     }
 
     private func addFileAction(urls: [URL]) {
-        conversionFinished = false
-        conversionStarted = false
+        files.removeAll { file in
+            file.state != .unstarted
+        }
         for url in urls {
             if !files.map(\.url).contains(url) {
                 files.append(FileModel(url: url))
@@ -168,13 +156,11 @@ struct ContentView: View {
         panel.allowsMultipleSelection = false
         panel.beginSheetModal(for: NSApplication.shared.windows.first!) { modal in
             if modal == .OK {
-                canAddFile = false
-                conversionStarted = true
                 let destinationDirectory = panel.url!
-                for (index, file) in files.enumerated() {
+                for (index, file) in files.enumerated().filter({ $0.element.state != .success }) {
+                    files[index].state = .processing
                     let image = try! NSImage(data: .init(contentsOf: file.url))
                     let resultURL = file.url.deletingPathExtension().appendingPathExtension("webp")
-                    print(resultURL)
                     queue.addOperation {
                         let data = try? webPEncoder.encode(image!, config: .preset(conversionCategory, quality: Float(conversionQuality)))
                         if let data {
@@ -187,7 +173,6 @@ struct ContentView: View {
                 }
             }
         }
-
     }
 
     private func getSavingFormattedString(_ url: URL) -> String {
