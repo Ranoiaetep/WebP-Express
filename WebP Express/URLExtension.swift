@@ -7,10 +7,6 @@
 
 import Foundation
 
-extension URL: Identifiable {
-    public var id: String { absoluteString }
-}
-
 extension URL {
     public var directory: String { deletingLastPathComponent().path(percentEncoded: false) }
 }
