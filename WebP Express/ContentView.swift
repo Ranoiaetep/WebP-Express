@@ -84,12 +84,9 @@ struct ContentView: View {
                     Divider()
                         .frame(height: 20)
                     Picker(selection: $conversionCategory) {
-                        Text("Default").tag(WebPEncoderConfig.Preset.default)
-                        Text("Picture").tag(WebPEncoderConfig.Preset.picture)
-                        Text("Photo").tag(WebPEncoderConfig.Preset.photo)
-                        Text("Drawing").tag(WebPEncoderConfig.Preset.drawing)
-                        Text("Icon").tag(WebPEncoderConfig.Preset.icon)
-                        Text("Text").tag(WebPEncoderConfig.Preset.text)
+                        ForEach(WebPEncoderConfig.Preset.allCases, id: \.hashValue) { preset in
+                            Text(preset.description.capitalized).tag(preset)
+                        }
                     } label: {
                         Label("Preset", systemImage: "folder.badge.questionmark")
                     }
