@@ -9,24 +9,6 @@ import SwiftUI
 import PhotosUI
 import WebP
 
-enum ProcessingState
-{
-    case success, fail, processing, unstarted
-}
-
-struct FileModel
-{
-    var url: URL
-    var state: ProcessingState = .unstarted
-}
-
-extension FileModel: Identifiable
-{
-    public var id: URL { url }
-}
-
-extension FileModel: Equatable {}
-
 struct ContentView: View {
     private let webPEncoder = WebPEncoder()
     @State private var queue: OperationQueue = .init()

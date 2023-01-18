@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DE0935E12977C83E00FE7979 /* FileModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE0935E02977C83E00FE7979 /* FileModel.swift */; };
 		DE87272F2959850500E5F6AD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DE8727292959850500E5F6AD /* Assets.xcassets */; };
 		DE8727302959850500E5F6AD /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DE87272B2959850500E5F6AD /* Preview Assets.xcassets */; };
 		DE8727312959850500E5F6AD /* WebP_ExpressApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE87272C2959850500E5F6AD /* WebP_ExpressApp.swift */; };
@@ -29,6 +30,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		DE0935E02977C83E00FE7979 /* FileModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileModel.swift; sourceTree = "<group>"; };
 		DE7BAC53295927D10077FF41 /* WebP Express.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "WebP Express.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DE8727292959850500E5F6AD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DE87272B2959850500E5F6AD /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -82,6 +84,7 @@
 				DE87272A2959850500E5F6AD /* Preview Content */,
 				DE87272C2959850500E5F6AD /* WebP_ExpressApp.swift */,
 				DE87272D2959850500E5F6AD /* ContentView.swift */,
+				DE0935E02977C83E00FE7979 /* FileModel.swift */,
 				DE872733295985AE00E5F6AD /* WebP_Express.entitlements */,
 			);
 			path = "WebP Express";
@@ -174,6 +177,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DE8727322959850500E5F6AD /* ContentView.swift in Sources */,
+				DE0935E12977C83E00FE7979 /* FileModel.swift in Sources */,
 				DE8727312959850500E5F6AD /* WebP_ExpressApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
