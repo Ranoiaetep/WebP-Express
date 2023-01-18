@@ -22,18 +22,18 @@ extension WebPEncoderConfig.Preset: CaseIterable {
 extension WebPEncoderConfig.Preset: CustomStringConvertible {
     public var description: String {
         switch self {
-            case .default:
-                return "default"
-            case .picture:
-                return "picture"
-            case .photo:
-                return "photo"
-            case .drawing:
-                return "drawing"
-            case .icon:
-                return "icon"
-            case .text:
-                return "text"
+        case .default:
+            return "default"
+        case .picture:
+            return "picture"
+        case .photo:
+            return "photo"
+        case .drawing:
+            return "drawing"
+        case .icon:
+            return "icon"
+        case .text:
+            return "text"
         }
     }
 }

@@ -7,8 +7,7 @@
 
 import Foundation
 
-struct FileModel
-{
+struct FileModel {
     enum ProcessingState
     {
         case success, fail, processing, unstarted
@@ -18,8 +17,7 @@ struct FileModel
     var state: ProcessingState = .unstarted
 }
 
-extension FileModel: Identifiable
-{
+extension FileModel: Identifiable {
     public var id: URL { url }
 }
 

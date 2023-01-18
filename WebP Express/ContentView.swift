@@ -32,7 +32,7 @@ struct ContentView: View {
                         .padding()
                 }
                 .disabled(!operationQueue.operations.isEmpty ||
-                          files.map(\.state).filter{ $0 != .success }.isEmpty
+                          files.map(\.state).filter({ $0 != .success }).isEmpty
                 )
             }
             .frame(height: 40)
@@ -68,10 +68,8 @@ struct ContentView: View {
 
     private func addFileAction(urls: [URL]) {
         files.removeAll { $0.state == .success }
-        for url in urls {
-            if !files.map(\.url).contains(url) {
-                files.append(FileModel(url: url))
-            }
+        for url in urls where !files.map(\.url).contains(url){
+            files.append(FileModel(url: url))
         }
         files.sort(by: <)
     }
@@ -95,7 +93,7 @@ struct ContentView: View {
                     operationQueue.addOperation {
                         guard let image,
                               let data = try? webPEncoder.encode(image, config: .preset(conversionCategory, quality: Float(conversionQuality))),
-                              let _ = try? data.write(to: destinationDirectory.appending(component: resultURL.lastPathComponent))
+                              (try? data.write(to: destinationDirectory.appending(component: resultURL.lastPathComponent))) != nil
                         else {
                             files[index].state = .fail
                             return
@@ -120,18 +118,18 @@ struct FileTableView: View {
                 HStack {
                     Spacer()
                     switch file.state {
-                        case .unstarted:
-                            EmptyView()
-                        case .success:
-                            Image(systemName: "checkmark.circle")
-                                .foregroundColor(.green)
-                        case .fail:
-                            Image(systemName: "x.circle")
-                                .foregroundColor(.red)
-                        case .processing:
-                            ProgressView()
-                                .scaleEffect(0.5)
-                                .frame(width: 10, height: 10)
+                    case .unstarted:
+                        EmptyView()
+                    case .success:
+                        Image(systemName: "checkmark.circle")
+                            .foregroundColor(.green)
+                    case .fail:
+                        Image(systemName: "x.circle")
+                            .foregroundColor(.red)
+                    case .processing:
+                        ProgressView()
+                            .scaleEffect(0.5)
+                            .frame(width: 10, height: 10)
                     }
                     Spacer()
                 }
