@@ -9,17 +9,34 @@ import SwiftUI
 import PhotosUI
 import WebP
 
+enum ProcessingState
+{
+    case success, fail, processing, unstarted
+}
+
+struct FileModel
+{
+    var url: URL
+    var state: ProcessingState = .unstarted
+}
+
+extension FileModel: Identifiable
+{
+    public var id: URL { url }
+}
+
+extension FileModel: Equatable {}
+
 struct ContentView: View {
-    @State private var fileURLS: [URL] = []
     private let webPEncoder = WebPEncoder()
     @State private var queue: OperationQueue = .init()
-    @State private var fileFinished: [URL:Bool] = [:]
+    @State private var files: [FileModel] = []
     @State private var conversionStarted: Bool = false
     @State private var conversionFinished: Bool = false
     @State private var canAddFile: Bool = true
     @AppStorage("ConversionQuality") private var conversionQuality: Double = 80
     @AppStorage("ConversionCategory") private var conversionCategory: WebPEncoderConfig.Preset = .default
-    @State private var selectedFile: Set<URL.ID> = []
+    @State private var selectedFile: Set<FileModel.ID> = []
 
     var body: some View {
         VStack(spacing: 10) {
@@ -42,46 +59,45 @@ struct ContentView: View {
                     Label("Start", systemImage: "play")
                         .padding()
                 }
-                .disabled(fileURLS.count == 0)
+                .disabled(files.isEmpty)
             }
             .frame(height: 40)
-            .onChange(of: fileFinished) { newValue in
-                if newValue.count == fileURLS.count {
+            .onChange(of: files.map(\.state)) { newValue in
+                if Set(newValue) == Set([.success, .fail]) {
                     canAddFile = true
                     conversionFinished = true
                 }
             }
-            Table(fileURLS, selection: $selectedFile) {
-                TableColumn("Filename", value: \.lastPathComponent)
+            Table(files, selection: $selectedFile) {
+                TableColumn("Filename", value: \.url.lastPathComponent)
                     .width(min: 200, ideal: 300)
-                TableColumn("Path", value: \.directory)
+                TableColumn("Path", value: \.url.directory)
                     .width(min: 200)
-                TableColumn("Space Saved") { url in
-                    if fileFinished[url] ?? false {
-                        Text(getSavingFormattedString(url))
-                    }
-                    else { EmptyView() }
+                TableColumn("Space Saved") { file in
+                    Text(file.state == .success ? getSavingFormattedString(file.url) : "")
                 }
                     .width(100)
-                TableColumn("") { url in
-                    if !conversionStarted {
-                        EmptyView()
-                    }
-                    else if fileFinished[url] ?? false {
-                        Image(systemName: "checkmark.circle")
-                            .foregroundColor(.green)
-                    }
-                    else {
-                        ProgressView()
-                            .scaleEffect(0.5)
-                            .frame(height: 10)
+                TableColumn("") { file in
+                    switch file.state {
+                        case .unstarted:
+                            EmptyView()
+                        case .success:
+                            Image(systemName: "checkmark.circle")
+                                .foregroundColor(.green)
+                        case .fail:
+                            Image(systemName: "x.circle")
+                                .foregroundColor(.red)
+                        case .processing:
+                            ProgressView()
+                                .scaleEffect(0.5)
+                                .frame(height: 10)
                     }
                 }
                     .width(20)
             }
             .onDeleteCommand {
-                fileURLS.removeAll { url in
-                    selectedFile.contains(url.id)
+                files.removeAll { file in
+                    selectedFile.contains(file.id)
                 }
                 selectedFile.removeAll()
             }
@@ -136,12 +152,12 @@ struct ContentView: View {
 
     private func addFileAction(urls: [URL]) {
         conversionFinished = false
-        fileURLS.removeAll { url in
-            fileFinished[url] ?? false
-        }
-        fileFinished.removeAll()
-        fileURLS.append(contentsOf: urls)
         conversionStarted = false
+        for url in urls {
+            if !files.map(\.url).contains(url) {
+                files.append(FileModel(url: url))
+            }
+        }
     }
 
     private func startConversionAction() {
@@ -154,16 +170,19 @@ struct ContentView: View {
             if modal == .OK {
                 canAddFile = false
                 conversionStarted = true
-                for url in fileURLS {
-                    let image = try! NSImage(data: Data(contentsOf: url))
-                    let tempURL = url.deletingPathExtension().appendingPathExtension("webp")
-                    let destinationURL = panel.urls.first!.appending(component: tempURL.lastPathComponent)
+                let destinationDirectory = panel.url!
+                for (index, file) in files.enumerated() {
+                    let image = try! NSImage(data: .init(contentsOf: file.url))
+                    let resultURL = file.url.deletingPathExtension().appendingPathExtension("webp")
+                    print(resultURL)
                     queue.addOperation {
                         let data = try? webPEncoder.encode(image!, config: .preset(conversionCategory, quality: Float(conversionQuality)))
                         if let data {
-                            try! data.write(to: destinationURL)
+                            try! data.write(to: destinationDirectory.appending(component: resultURL.lastPathComponent))
+                            files[index].state = .success
+                        } else {
+                            files[index].state = .fail
                         }
-                        fileFinished[url] = true
                     }
                 }
             }
