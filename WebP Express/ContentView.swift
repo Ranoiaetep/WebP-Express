@@ -56,13 +56,13 @@ struct ContentView: View {
                     .width(min: 200, ideal: 300)
                 TableColumn("Path", value: \.directory)
                     .width(min: 200)
-                TableColumn("Saving") { url in
+                TableColumn("Space Saved") { url in
                     if fileFinished[url] ?? false {
-                        Text(calcFileSaving(url))
+                        Text(getSavingFormattedString(url))
                     }
                     else { EmptyView() }
                 }
-                    .width(40)
+                    .width(100)
                 TableColumn("") { url in
                     if !conversionStarted {
                         EmptyView()
@@ -171,13 +171,15 @@ struct ContentView: View {
 
     }
 
-    private func calcFileSaving(_ url: URL) -> String {
-        let attribute1 = try! FileManager.default.attributesOfItem(atPath: url.path(percentEncoded: false))
-        let attribute2 = try! FileManager.default.attributesOfItem(atPath: url.deletingPathExtension().appendingPathExtension("webp").path(percentEncoded: false))
-        let size1 = attribute1[.size]! as! NSNumber
-        let size2 = attribute2[.size]! as! NSNumber
-        let rate = (size1.doubleValue - size2.doubleValue) / size1.doubleValue
-        return rate.formatted(.percent.precision(.fractionLength(0)))
+    private func getSavingFormattedString(_ url: URL) -> String {
+        if let attribute1 = try? FileManager.default.attributesOfItem(atPath: url.path(percentEncoded: false)),
+           let attribute2 = try? FileManager.default.attributesOfItem(atPath: url.deletingPathExtension().appendingPathExtension("webp").path(percentEncoded: false)) {
+            let size1 = attribute1[.size]! as! NSNumber
+            let size2 = attribute2[.size]! as! NSNumber
+            let rate = (size1.doubleValue - size2.doubleValue) / size1.doubleValue
+            return rate.formatted(.percent.precision(.fractionLength(0)))
+        }
+        return ""
     }
 }
 
