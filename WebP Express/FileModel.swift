@@ -24,7 +24,9 @@ extension FileModel: Identifiable {
 extension FileModel: Equatable {}
 
 extension FileModel: Comparable {
+
     static func < (lhs: FileModel, rhs: FileModel) -> Bool {
         lhs.url < rhs.url
     }
+
 }
