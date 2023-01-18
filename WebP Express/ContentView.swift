@@ -169,44 +169,6 @@ struct ContentView: View {
     }
 }
 
-extension WebPEncoderConfig.Preset: RawRepresentable {
-    public init?(rawValue: String) {
-        switch rawValue {
-            case "default":
-                self = .default
-            case "picture":
-                self = .picture
-            case "photo":
-                self = .photo
-            case "drawing":
-                self = .drawing
-            case "icon":
-                self = .icon
-            case "text":
-                self = .text
-            default:
-                return nil
-        }
-    }
-
-    public var rawValue: String {
-        switch self {
-            case .default:
-                return "default"
-            case .picture:
-                return "picture"
-            case .photo:
-                return "photo"
-            case .drawing:
-                return "drawing"
-            case .icon:
-                return "icon"
-            case .text:
-                return "text"
-        }
-    }
-}
-
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
