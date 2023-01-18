@@ -68,7 +68,7 @@ struct ContentView: View {
 
     private func addFileAction(urls: [URL]) {
         files.removeAll { $0.state == .success }
-        for url in urls where !files.map(\.url).contains(url){
+        for url in urls where !files.map(\.url).contains(url) {
             files.append(FileModel(url: url))
         }
         files.sort(by: <)

@@ -8,8 +8,7 @@
 import Foundation
 
 struct FileModel {
-    enum ProcessingState
-    {
+    enum ProcessingState {
         case success, fail, processing, unstarted
     }
 
