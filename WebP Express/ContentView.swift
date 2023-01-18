@@ -92,7 +92,9 @@ struct ContentView: View {
                     let resultURL = file.url.deletingPathExtension().appendingPathExtension("webp")
                     operationQueue.addOperation {
                         guard let image,
-                              let data = try? webPEncoder.encode(image, config: .preset(conversionCategory, quality: Float(conversionQuality))),
+                              let data = try? webPEncoder.encode(
+                                image, config: .preset(conversionCategory, quality: Float(conversionQuality))
+                              ),
                               (try? data.write(to: destinationDirectory.appending(component: resultURL.lastPathComponent))) != nil
                         else {
                             files[index].state = .fail
@@ -152,8 +154,9 @@ struct FileTableView: View {
     }
 
     private func getSpaceSavedFormattedString(_ url: URL) -> String {
+        let destinationURL = url.deletingPathExtension().appendingPathExtension("webp")
         if let size1 = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize,
-           let size2 = try? url.deletingPathExtension().appendingPathExtension("webp").resourceValues(forKeys: [.fileSizeKey]).fileSize {
+           let size2 = try? destinationURL.resourceValues(forKeys: [.fileSizeKey]).fileSize {
             let rate = Double(size1 - size2) / Double(size1)
             return rate.formatted(.percent.precision(.fractionLength(0)))
         }
