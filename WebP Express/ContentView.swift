@@ -145,16 +145,30 @@ struct ContentView: View {
     }
 
     private func startConversionAction() {
-        canAddFile = false
-        conversionStarted = true
-        for url in fileURLS {
-            let image = try! NSImage(data: Data(contentsOf: url))
-            queue.addOperation {
-                let data = try! webPEncoder.encode(image!, config: .preset(conversionCategory, quality: Float(conversionQuality)))
-                try! data.write(to: url.deletingPathExtension().appendingPathExtension("webp"))
-                fileFinished[url] = true
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.canCreateDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.beginSheetModal(for: NSApplication.shared.windows.first!) { modal in
+            if modal == .OK {
+                canAddFile = false
+                conversionStarted = true
+                for url in fileURLS {
+                    let image = try! NSImage(data: Data(contentsOf: url))
+                    let tempURL = url.deletingPathExtension().appendingPathExtension("webp")
+                    let destinationURL = panel.urls.first!.appending(component: tempURL.lastPathComponent)
+                    queue.addOperation {
+                        let data = try? webPEncoder.encode(image!, config: .preset(conversionCategory, quality: Float(conversionQuality)))
+                        if let data {
+                            try! data.write(to: destinationURL)
+                        }
+                        fileFinished[url] = true
+                    }
+                }
             }
         }
+
     }
 
     private func calcFileSaving(_ url: URL) -> String {
