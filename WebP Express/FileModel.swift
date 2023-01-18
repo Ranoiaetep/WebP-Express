@@ -13,7 +13,7 @@ struct FileModel
     {
         case success, fail, processing, unstarted
     }
-    
+
     var url: URL
     var state: ProcessingState = .unstarted
 }
@@ -24,3 +24,9 @@ extension FileModel: Identifiable
 }
 
 extension FileModel: Equatable {}
+
+extension FileModel: Comparable {
+    static func < (lhs: FileModel, rhs: FileModel) -> Bool {
+        lhs.url < rhs.url
+    }
+}
