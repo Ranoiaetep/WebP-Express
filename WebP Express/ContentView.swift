@@ -8,13 +8,17 @@
 import SwiftUI
 import PhotosUI
 import WebP
+import UserNotifications
 
 struct ContentView: View {
     @AppStorage("ConversionQuality") private var conversionQuality: Double = 80
     @AppStorage("ConversionCategory") private var conversionCategory: WebPEncoderConfig.Preset = .default
+    @AppStorage("UserNotificationAuthorized") private var userNotificationAuthorized: Bool = false
     @State private var operationQueue: OperationQueue = .init()
     @State var files: [FileModel] = []
+    @State private var totalFileSizeSaved = 0
     private let webPEncoder = WebPEncoder()
+    private let userNotificationCenter = UNUserNotificationCenter.current()
 
     var body: some View {
         VStack {
@@ -27,7 +31,13 @@ struct ContentView: View {
 
                 Spacer()
 
-                Button(action: startConversionAction) {
+                Button{
+                    userNotificationCenter.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+                        userNotificationAuthorized = granted
+                        if let error { print(error) }
+                    }
+                    startConversionAction()
+                } label: {
                     Label("Start", systemImage: "play")
                         .padding()
                 }
@@ -43,6 +53,29 @@ struct ContentView: View {
             OptionsView(conversionQuality: $conversionQuality, conversionCategory: $conversionCategory)
         }
         .padding()
+        .onChange(of: files.map(\.state)) { newValue in
+            userNotificationCenter.getNotificationSettings { setting in
+                if newValue.count > 0 && setting.alertSetting == .enabled && setting.soundSetting == .enabled{
+                    let content = UNMutableNotificationContent()
+                    if newValue.allSatisfy({ $0 == .success }) {
+                        content.title = "Job Done"
+                        content.subtitle = "\(getFormattedFileSizeFromInt(totalFileSizeSaved)) saved!"
+                        content.sound = .default
+                    }
+                    else if newValue.allSatisfy({ $0 == .success || $0 == .fail }) {
+                        content.title = "Job Failed"
+                        content.subtitle = "\(newValue.filter({ $0 != .success }).count) conversion failed!"
+                        content.sound = .defaultCritical
+                    }
+                    userNotificationCenter.add(.init(identifier: UUID().uuidString, content: content, trigger: nil))
+                }
+            }
+        }
+        .onAppear {
+            userNotificationCenter.getNotificationSettings { setting in
+                print(setting)
+            }
+        }
     }
 
     private func addFileViaPanel() {
@@ -87,10 +120,10 @@ struct ContentView: View {
             if modal == .OK {
                 let destinationDirectory = panel.url!
                 for (index, file) in files.enumerated().filter({ $0.element.state != .success }) {
-                    files[index].state = .processing
                     let image = try? NSImage(data: .init(contentsOf: file.url))
                     let resultURL = file.url.deletingPathExtension().appendingPathExtension("webp")
                     operationQueue.addOperation {
+                        files[index].state = .processing
                         guard let image,
                               let data = try? webPEncoder.encode(
                                 image, config: .preset(conversionCategory, quality: Float(conversionQuality))
@@ -99,6 +132,10 @@ struct ContentView: View {
                         else {
                             files[index].state = .fail
                             return
+                        }
+                        if let originalSize = try? file.url.resourceValues(forKeys: [.fileSizeKey]).fileSize,
+                           let newSize = try? resultURL.resourceValues(forKeys: [.fileSizeKey]).fileSize {
+                            totalFileSizeSaved += originalSize - newSize
                         }
                         files[index].state = .success
                     }
@@ -137,13 +174,19 @@ struct FileTableView: View {
                 }
             }
             .width(33)
-            TableColumn("Space Saved") { file in
+            TableColumn("Size") { file in
+                if file.state == .success {
+                    Text(getFormattedFileSizeFromInt(getNewFileSize(file.url)))
+                }
+            }
+            .width(70)
+            TableColumn("Savings") { file in
                 HStack {
                     Spacer()
                     Text(file.state == .success ? getSpaceSavedFormattedString(file.url) : "")
                 }
             }
-            .width(75)
+            .width(50)
         }
         .onDeleteCommand {
             files.removeAll { file in
@@ -153,15 +196,33 @@ struct FileTableView: View {
         }
     }
 
-    private func getSpaceSavedFormattedString(_ url: URL) -> String {
+    private func getNewFileSize(_ url: URL) -> Int? {
         let destinationURL = url.deletingPathExtension().appendingPathExtension("webp")
+        return try? destinationURL.resourceValues(forKeys: [.fileSizeKey]).fileSize
+    }
+
+    private func getSpaceSavedFormattedString(_ url: URL) -> String {
         if let size1 = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize,
-           let size2 = try? destinationURL.resourceValues(forKeys: [.fileSizeKey]).fileSize {
+           let size2 = getNewFileSize(url) {
             let rate = Double(size1 - size2) / Double(size1)
             return rate.formatted(.percent.precision(.fractionLength(0)))
         }
         return ""
     }
+}
+
+private func getFormattedFileSizeFromInt(_ value: Int?) -> String {
+    if let value {
+        var valueDouble = Double(value)
+        let sizeLables = ["B", "KB", "MB", "GB"]
+        var currentLableIndex = 0
+        while valueDouble > 1024 && currentLableIndex < 3 {
+            valueDouble /= 1024
+            currentLableIndex += 1
+        }
+        return "\(valueDouble.formatted(.number.precision(.significantDigits(4)))) \(sizeLables[currentLableIndex])"
+    }
+    return ""
 }
 
 struct OptionsView: View {
